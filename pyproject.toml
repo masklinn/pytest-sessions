@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytest-sessions"
+version = "0.1.0"
+description = "A supercharged cacheprovider"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest>=8.0",
+]
+classifiers = [
+    "Framework :: Pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"pytest_sessions" = ["py.typed"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.0",
+]
+
+[project.entry-points.pytest11]
+sessions = "pytest_sessions"
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.mypy]
+python_version = "3.10"
+files = "src,tests"
+strict = true

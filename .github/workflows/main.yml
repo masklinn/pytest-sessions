@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  checks:
+    runs-on: ubuntu-slim
+
+    steps:
+    - name: Checkout working copy
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # 6.0.1
+      with:
+        submodules: true
+        fetch-depth: 0
+        persist-credentials: false
+    - name: ruff check
+      uses: astral-sh/ruff-action@57714a7c8a2e59f32539362ba31877a1957dded1  # 3.5.1
+      with:
+        version: "latest"
+    - name: ruff format
+      if: always()
+      uses: astral-sh/ruff-action@57714a7c8a2e59f32539362ba31877a1957dded1  # 3.5.1
+      with:
+        version: "latest"
+        args: format --diff
+
+  typecheck:
+    # with the project still being reasonable, mypy on slim means 12
+    # -> 16s which is fine
+    runs-on: ubuntu-slim
+
+    steps:
+    - name: Checkout working copy
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # 6.0.1
+      with:
+        submodules: true
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Set up UV
+      uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867  # 7.1.6
+    - name: mypy
+      run: uvx --with pytest mypy
+
+  test:
+    # latest needs 20~25s per, slim needs 70~180 (and that's near
+    # enough all pytest, overhead is 5~10s on both)
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+        - "3.10"
+        - "3.11"
+        - "3.12"
+        - "3.13"
+        - "3.14"
+        pytest:
+        - "8.0"
+        - "9.0"
+    
+    steps:
+    - name: Checkout working copy
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # 6.0.1
+      with:
+        submodules: true
+        persist-credentials: false
+    - name: Set up UV
+      uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867  # 7.1.6
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: run tests
+      run: uv run --with pytest~=${{ matrix.pytest }} pytest -v --doctest-glob="*.rst" -ra
+
+  results:
+    needs: ["checks", "typecheck", "test"]
+    runs-on: ubuntu-slim
+    permissions: {}
+    steps:
+    - run: exit 0

@@ -22,12 +22,18 @@ class TestNewFirst:
 
         result = pytester.runpytest("-v")
         result.stdout.fnmatch_lines(
-            ["*test_1/test_1.py::test_1 PASSED*", "*test_2/test_2.py::test_1 PASSED*"]
+            [
+                "*test_1/test_1.py::test_1 PASSED*",
+                "*test_2/test_2.py::test_1 PASSED*",
+            ]
         )
 
         result = pytester.runpytest("-v", "--nf")
         result.stdout.fnmatch_lines(
-            ["*test_2/test_2.py::test_1 PASSED*", "*test_1/test_1.py::test_1 PASSED*"]
+            [
+                "*test_2/test_2.py::test_1 PASSED*",
+                "*test_1/test_1.py::test_1 PASSED*",
+            ]
         )
 
         p1.write_text(
@@ -53,7 +59,9 @@ class TestNewFirst:
             """
         )
         pytester.syspathinsert()
-        result = pytester.runpytest("--nf", "-p", "myplugin", "--collect-only", "-q")
+        result = pytester.runpytest(
+            "--nf", "-p", "myplugin", "--collect-only", "-q"
+        )
         result.stdout.fnmatch_lines(
             [
                 "new_items: *test_1.py*test_1.py*test_2.py*",
@@ -107,7 +115,7 @@ class TestNewFirst:
             "@pytest.mark.parametrize('num', [1, 2, 3])\n"
             "def test_1(num): assert num\n",
             encoding="utf-8",
-        )
+        )  # fmt: skip
         os.utime(p1, ns=(p1.stat().st_atime_ns, int(1e9)))
 
         # Running only a subset does not forget about existing ones.
